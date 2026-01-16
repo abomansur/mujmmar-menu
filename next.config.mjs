@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // أزلنا إعدادات التصدير لأن فيرسل ذكي وسيقوم بكل شيء تلقائياً
+  images: {
+    unoptimized: true, 
+  },
 };
 
 export default nextConfig;

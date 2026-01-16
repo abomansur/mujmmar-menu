@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root {
+  --foreground: #ffffff;
+}
+
+@theme {
+  --color-mujmmar-red: #b21817;
+  --color-mujmmar-gold: #d88808;
+  --color-mujmmar-dark: #0a0202; /* درجة داكنة جداً من الأحمر */
+  --font-sans: 'Cairo', system-ui, sans-serif;
+}
+
+body {
+  background-color: #000000;
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  
+  /* التغيير الجذري: تدرج شعاعي يعطي عمقاً وفخامة */
+  /* يبدأ من أعلى الوسط بلون خمري غني ويتلاشى للأسود */
+  background-image: radial-gradient(circle at 50% 10%, #4a0a0a 0%, #1a0303 40%, #000000 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* تحسين السكرول بار */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #b21817; border-radius: 10px; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

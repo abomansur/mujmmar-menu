@@ -163,10 +163,10 @@ export default function Home() {
           <div className="bg-[#1a0505]/95 backdrop-blur-xl border border-[#d88808]/20 rounded-full p-2 pr-6 pl-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4 pointer-events-auto max-w-sm w-full">
             
             <div className="flex gap-4 items-center">
-        <a href="instagram://user?username=mujmmar_" target="_blank" rel="noopener noreferrer" className="text-[#E1306C] hover:scale-125 transition-transform"><FaInstagram size={20} /></a>
-        <a href="https://www.tiktok.com/@mujmmar" target="_blank" rel="noopener noreferrer" className="text-white hover:scale-125 transition-transform"><FaTiktok size={18} /></a>
-          <a href="snapchat://add/mujmmar" target="_blank" rel="noopener noreferrer" className="text-[#FFFC00] hover:scale-125 transition-transform"><FaSnapchat size={20} /></a>
-        <a href={socialLinks.location} target="_blank" rel="noopener noreferrer" className="text-[#EA4335] hover:scale-125 transition-transform"><FaMapMarkerAlt size={20} /></a>
+<a href="instagram://user?username=mujmmar_" target="_blank" rel="noopener noreferrer" className="text-[#E1306C] hover:scale-125 transition-transform"><FaInstagram size={20} /></a>
+              <a href="https://www.tiktok.com/@mujmmar" target="_blank" rel="noopener noreferrer" className="text-white hover:scale-125 transition-transform"><FaTiktok size={18} /></a>
+<a href="snapchat://add/mujmmar" target="_blank" rel="noopener noreferrer" className="text-[#FFFC00] hover:scale-125 transition-transform"><FaSnapchat size={20} /></a>
+              <a href={socialLinks.location} target="_blank" rel="noopener noreferrer" className="text-[#EA4335] hover:scale-125 transition-transform"><FaMapMarkerAlt size={20} /></a>
             </div>
 
             <a 

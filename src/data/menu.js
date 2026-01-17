@@ -349,7 +349,7 @@ export const menuItems = [
     name: "صوص مجمر",
     description: "صوص خاص مطعم مجمّر.",
     price: "3",
-    image: "/images/Mujammar_Sauce.jpg"
+    image: "/images/Mujmmar_Sauce.jpg"
   },
   {
     id: 42,
@@ -357,7 +357,7 @@ export const menuItems = [
     name: "صوص عسل",
     description: "صوص عسل طبيعي حلو.",
     price: "3",
-    image: "/images/Garlic_Sauce.jpg"
+    image: "/images/Honey_Sauce.jpg"
   },
   {
     id: 43,
@@ -365,7 +365,7 @@ export const menuItems = [
     name: "صوص حار",
     description: "صوص حار لمحبي النكهات القوية.",
     price: "3",
-    image: "/images/Mujammar_Sauce.jpg"
+    image: "/images/Mujmmar_Sauce.jpg" // 👈 نفس صورة صوص مجمر
   },
   {
     id: 44,
@@ -381,7 +381,15 @@ export const menuItems = [
     name: "طحينة",
     description: "صلصة طحينة كريمية.",
     price: "2",
-    image: "/images/Garlic_Sauce.jpg"
+    image: "/images/Tahina_Sauce.jpg"
+  },
+  {
+    id: 46, // 👈 الصنف الجديد
+    categoryId: 'sauces',
+    name: "مخلل",
+    description: "مخلل خيار مقرمش.",
+    price: "3",
+    image: "/images/Pickles.jpg"
   },
 
   // --- مشروبات ---

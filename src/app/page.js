@@ -81,7 +81,7 @@ export default function Home() {
   const handleCheckout = () => {
     const line = "ــــــــــــــــــــــــــــــــــــــــ";
     
-    let message = `*طلب جديد #Web*\n`;
+    let message = `*طلب جديد #*\n`;
     message += `نوع الطلب: ${orderType === 'delivery' ? 'توصيل ' : 'استلام '}\n`;
     message += `${line}\n`;
     

@@ -4,12 +4,13 @@ import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaMapMarkerAlt, FaInstagram, FaTiktok, FaSnapchat, FaWhatsapp, FaPlus, FaMinus, FaTrash, FaShoppingBasket, FaMotorcycle, FaStore, FaTimes, FaPen } from 'react-icons/fa';
+// تأكد أن مسار البيانات صحيح لديك
 import { menuItems, categories, socialLinks } from '../data/menu';
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all'); 
   const [selectedItem, setSelectedItem] = useState(null);
-  
+   
   // حالة لتخزين العنصر الذي يتم تعديله حالياً
   const [editingCartItem, setEditingCartItem] = useState(null);
 
@@ -167,7 +168,7 @@ export default function Home() {
   };
 
   return (
-    <main dir="rtl" className="min-h-screen font-sans relative pb-40 bg-[#0a0202]">      
+    <main dir="rtl" className="min-h-screen font-sans relative pb-40 bg-[#0a0202]">       
       {/* ⚠️ تم إزالة overflow-hidden من هنا لكي يعمل الـ Sticky Header */}
       <div className="max-w-6xl mx-auto bg-[#0a0202] min-h-screen shadow-2xl border-x border-[#ffffff]/5">
       
@@ -278,7 +279,9 @@ export default function Home() {
                       <div className="flex-1 cursor-pointer" onClick={() => handleEditClick(item)}>
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-white text-sm">{item.name}</h3>
-                          <FaPen size={10} className="text-blue-400 opacity-50" />
+                          <div className="flex items-center gap-1 opacity-50 text-blue-400">
+                             <FaPen size={10} /> <span className="text-[10px]">تعديل</span>
+                          </div>
                         </div>
                         
                         {sortedOptions.length > 0 && (
@@ -456,15 +459,14 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
   );
 }
 
-// 👇 هنا منطق "نفدت الكمية" (Sold Out)
+// 👇 هنا التعديل: شلنا التحقق من الاسم وخلينا isSoldOut دايماً false
 function ProductCard({ item, isOffer, onClick }) {
-  // التحقق من أن المنتج هو كباب دجاج
-  const isSoldOut = item.name.includes("كباب دجاج");
+  // إلغاء كود التحقق القديم: const isSoldOut = item.name.includes("كباب دجاج");
+  const isSoldOut = false; // الآن كل شيء متاح
 
   if (isOffer) {
     return (
       <div 
-        // ⚠️ تعطيل النقر إذا نفدت الكمية
         onClick={isSoldOut ? null : onClick} 
         className={`group relative w-full aspect-[5/3] rounded-2xl overflow-hidden border border-[#d88808]/20 shadow-xl transition-all active:scale-95 
           ${isSoldOut ? 'opacity-60 grayscale cursor-not-allowed' : 'cursor-pointer hover:border-[#d88808]/50'}
@@ -472,7 +474,6 @@ function ProductCard({ item, isOffer, onClick }) {
       >
         <Image src={item.image} alt={item.name} fill className="object-cover" sizes="100vw" priority />
         
-        {/* شارة نفدت الكمية */}
         {isSoldOut && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
             <span className="text-white font-bold text-sm sm:text-base border-2 border-white/50 px-4 py-1.5 rounded-full bg-red-600/80 shadow-lg transform -rotate-12">
@@ -490,7 +491,6 @@ function ProductCard({ item, isOffer, onClick }) {
   }
   return (
     <div 
-      // ⚠️ تعطيل النقر إذا نفدت الكمية
       onClick={isSoldOut ? null : onClick} 
       className={`group relative overflow-hidden rounded-2xl bg-[#1a0505] border border-[#d88808]/20 shadow-xl transition-all active:scale-95 
         ${isSoldOut ? 'opacity-60 grayscale cursor-not-allowed' : 'cursor-pointer hover:border-[#d88808]/50'}
@@ -499,7 +499,6 @@ function ProductCard({ item, isOffer, onClick }) {
       <div className="relative h-36 w-full bg-black/50 overflow-hidden">
         <Image src={item.image} alt={item.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 768px) 50vw, 33vw" />
         
-        {/* شارة نفدت الكمية */}
         {isSoldOut && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
             <span className="text-white font-bold text-xs sm:text-sm border border-white/50 px-3 py-1 rounded-full bg-red-600/80 shadow-lg transform -rotate-12">

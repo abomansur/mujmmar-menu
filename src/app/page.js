@@ -81,7 +81,7 @@ export default function Home() {
   const handleCheckout = () => {
     const line = "ــــــــــــــــــــــــــــــــــــــــ";
     
-    let message = `*طلب جديد #*\n`;
+    let message = `*طلب جديد #Web*\n`;
     message += `نوع الطلب: ${orderType === 'delivery' ? 'توصيل ' : 'استلام '}\n`;
     message += `${line}\n`;
     
@@ -168,7 +168,8 @@ export default function Home() {
 
   return (
     <main dir="rtl" className="min-h-screen font-sans relative pb-40 bg-[#0a0202]">      
-      <div className="max-w-6xl mx-auto bg-[#0a0202] min-h-screen shadow-2xl overflow-hidden border-x border-[#ffffff]/5">
+      {/* ⚠️ تم إزالة overflow-hidden من هنا لكي يعمل الـ Sticky Header */}
+      <div className="max-w-6xl mx-auto bg-[#0a0202] min-h-screen shadow-2xl border-x border-[#ffffff]/5">
       
         {/* الهيدر */}
         <header className="relative pt-12 pb-8 flex flex-col items-center justify-center text-center px-4 z-10">
@@ -181,8 +182,8 @@ export default function Home() {
           </motion.div>
         </header>
 
-        {/* شريط التصنيفات */}
-        <div className="sticky top-0 z-30 bg-[#0a0202]/95 backdrop-blur-xl py-4 border-b border-[#ffffff]/5 shadow-sm mb-6">
+        {/* شريط التصنيفات (ثابت عند التمرير) */}
+        <div className="sticky top-0 z-30 bg-[#0a0202]/95 backdrop-blur-xl py-4 border-b border-[#ffffff]/5 shadow-sm mb-6 transition-all">
           <div className="flex overflow-x-auto gap-3 px-4 no-scrollbar items-center pr-6 md:justify-center">
             <button onClick={() => setSelectedCategory('all')} className={`whitespace-nowrap px-6 py-2.5 rounded-full text-xs font-bold transition-all duration-200 ${selectedCategory === 'all' ? 'bg-gradient-to-r from-[#d88808] to-[#b21817] text-white shadow-lg scale-105' : 'bg-white/5 text-gray-400 border border-[#ffffff]/10 hover:text-white'}`}>الكل</button>
             {categories.map((cat) => (
@@ -213,11 +214,10 @@ export default function Home() {
           />
         )}
 
-        {/* --- الفوتر العائم الموحد (السلة + السوشيال ميديا) --- */}
+        {/* --- الفوتر العائم الموحد --- */}
         <div className="fixed bottom-6 w-full px-4 z-40 flex justify-center pointer-events-none">
           <div className="bg-[#1a0505]/95 backdrop-blur-xl border border-[#d88808]/20 rounded-full p-2 pr-6 pl-2 shadow-[0_10px_40px_rgba(0,0,0,0.6)] flex items-center justify-between gap-4 pointer-events-auto max-w-2xl w-full">
             
-            {/* أيقونات السوشيال ميديا (دائماً ظاهرة) */}
             <div className="flex gap-5 items-center shrink-0">
               <a href="instagram://user?username=mujmmar_" target="_blank" className="text-[#E1306C] hover:scale-125 transition-transform"><FaInstagram size={22} /></a>
               <a href="https://www.tiktok.com/@mujmmar" target="_blank" className="text-white hover:scale-125 transition-transform"><FaTiktok size={20} /></a>
@@ -226,7 +226,6 @@ export default function Home() {
               <a href={socialLinks.location} target="_blank" className="text-[#EA4335] hover:scale-125 transition-transform"><FaMapMarkerAlt size={22} /></a>
             </div>
 
-            {/* زر السلة (يتغير حسب الحالة) */}
             <button 
               onClick={() => cart.length > 0 && setIsCartOpen(true)}
               className={`
@@ -457,11 +456,31 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
   );
 }
 
+// 👇 هنا منطق "نفدت الكمية" (Sold Out)
 function ProductCard({ item, isOffer, onClick }) {
+  // التحقق من أن المنتج هو كباب دجاج
+  const isSoldOut = item.name.includes("كباب دجاج");
+
   if (isOffer) {
     return (
-      <div onClick={onClick} className="group relative w-full aspect-[5/3] rounded-2xl overflow-hidden cursor-pointer border border-[#d88808]/20 shadow-xl hover:border-[#d88808]/50 transition-all active:scale-95">
+      <div 
+        // ⚠️ تعطيل النقر إذا نفدت الكمية
+        onClick={isSoldOut ? null : onClick} 
+        className={`group relative w-full aspect-[5/3] rounded-2xl overflow-hidden border border-[#d88808]/20 shadow-xl transition-all active:scale-95 
+          ${isSoldOut ? 'opacity-60 grayscale cursor-not-allowed' : 'cursor-pointer hover:border-[#d88808]/50'}
+        `}
+      >
         <Image src={item.image} alt={item.name} fill className="object-cover" sizes="100vw" priority />
+        
+        {/* شارة نفدت الكمية */}
+        {isSoldOut && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
+            <span className="text-white font-bold text-sm sm:text-base border-2 border-white/50 px-4 py-1.5 rounded-full bg-red-600/80 shadow-lg transform -rotate-12">
+              نفدت الكمية
+            </span>
+          </div>
+        )}
+
         <div className="absolute bottom-0 w-full bg-black/70 backdrop-blur-sm py-2 px-4 flex justify-between items-center border-t border-white/5">
            <span className="text-white font-bold text-sm truncate ml-2">{item.name}</span>
            <span className="text-[#d88808] font-bold text-sm shrink-0">{item.price} SAR</span>
@@ -470,9 +489,25 @@ function ProductCard({ item, isOffer, onClick }) {
     );
   }
   return (
-    <div onClick={onClick} className="group relative overflow-hidden rounded-2xl bg-[#1a0505] border border-[#d88808]/20 shadow-xl cursor-pointer active:scale-95 transition-all hover:border-[#d88808]/50">
+    <div 
+      // ⚠️ تعطيل النقر إذا نفدت الكمية
+      onClick={isSoldOut ? null : onClick} 
+      className={`group relative overflow-hidden rounded-2xl bg-[#1a0505] border border-[#d88808]/20 shadow-xl transition-all active:scale-95 
+        ${isSoldOut ? 'opacity-60 grayscale cursor-not-allowed' : 'cursor-pointer hover:border-[#d88808]/50'}
+      `}
+    >
       <div className="relative h-36 w-full bg-black/50 overflow-hidden">
         <Image src={item.image} alt={item.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 768px) 50vw, 33vw" />
+        
+        {/* شارة نفدت الكمية */}
+        {isSoldOut && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-[2px]">
+            <span className="text-white font-bold text-xs sm:text-sm border border-white/50 px-3 py-1 rounded-full bg-red-600/80 shadow-lg transform -rotate-12">
+              نفدت الكمية
+            </span>
+          </div>
+        )}
+
         <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-[#0a0202] to-transparent opacity-80" />
       </div>
       <div className="p-3 relative z-10 bg-[#0a0202] h-full flex flex-col justify-between">

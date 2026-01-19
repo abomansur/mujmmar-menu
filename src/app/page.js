@@ -77,12 +77,11 @@ export default function Home() {
     }
   };
 
-  // --- تجهيز رسالة الواتس أب (التنسيق الجديد: مسافات + بدون إيموجي) ---
+  // --- تجهيز رسالة الواتس أب ---
   const handleCheckout = () => {
     const line = "ــــــــــــــــــــــــــــــــــــــــ";
     
-    let message = `*طلب جديد #*\n`;
-    // 👇 تم إزالة الإيموجي لحل مشكلة علامة الاستفهام
+    let message = `*طلب جديد #Web*\n`;
     message += `نوع الطلب: ${orderType === 'delivery' ? 'توصيل ' : 'استلام '}\n`;
     message += `${line}\n`;
     
@@ -101,7 +100,6 @@ export default function Home() {
         });
         message += `   (${sortedOptions.join('، ')})\n`;
       }
-      // 👇 تم إعادة سطر المسافة لفصل المنتجات عن بعضها
       message += `\n`; 
     });
 
@@ -110,11 +108,9 @@ export default function Home() {
     
     if (orderType === 'delivery') {
       if (isFreeDelivery) {
-        message += `التوصيل: (مجاني)
-         *داخل التيسير*\n`;
+        message += `التوصيل: (مجاني)\n*داخل التيسير*\n`;
       } else {
-        message += `التوصيل: ${deliveryFee} ريال 
-        *داخل التيسير*\n`;
+        message += `التوصيل: ${deliveryFee} ريال\n*داخل التيسير*\n`;
       }
     }
     
@@ -217,29 +213,40 @@ export default function Home() {
           />
         )}
 
-        {/* --- شريط السلة العائم --- */}
-        <AnimatePresence>
-          {cart.length > 0 && !isCartOpen && (
-            <motion.div 
-              initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
-              className="fixed bottom-6 w-full px-4 z-40 flex justify-center pointer-events-none"
+        {/* --- الفوتر العائم الموحد (السلة + السوشيال ميديا) --- */}
+        <div className="fixed bottom-6 w-full px-4 z-40 flex justify-center pointer-events-none">
+          <div className="bg-[#1a0505]/95 backdrop-blur-xl border border-[#d88808]/20 rounded-full p-2 pr-6 pl-2 shadow-[0_10px_40px_rgba(0,0,0,0.6)] flex items-center justify-between gap-4 pointer-events-auto max-w-2xl w-full">
+            
+            {/* أيقونات السوشيال ميديا (دائماً ظاهرة) */}
+            <div className="flex gap-5 items-center shrink-0">
+              <a href="instagram://user?username=mujmmar_" target="_blank" className="text-[#E1306C] hover:scale-125 transition-transform"><FaInstagram size={22} /></a>
+              <a href="https://www.tiktok.com/@mujmmar" target="_blank" className="text-white hover:scale-125 transition-transform"><FaTiktok size={20} /></a>
+              <a href="snapchat://add/mujmmar" target="_blank" className="text-[#FFFC00] hover:scale-125 transition-transform"><FaSnapchat size={22} /></a>
+              <a href={socialLinks.whatsapp} target="_blank" className="text-[#25D366] hover:scale-125 transition-transform"><FaWhatsapp size={22} /></a>
+              <a href={socialLinks.location} target="_blank" className="text-[#EA4335] hover:scale-125 transition-transform"><FaMapMarkerAlt size={22} /></a>
+            </div>
+
+            {/* زر السلة (يتغير حسب الحالة) */}
+            <button 
+              onClick={() => cart.length > 0 && setIsCartOpen(true)}
+              className={`
+                pl-2 pr-6 py-2.5 rounded-full font-bold text-sm flex items-center gap-3 transition-all duration-300
+                ${cart.length > 0 
+                  ? 'bg-gradient-to-r from-[#d88808] to-[#b21817] text-white shadow-lg cursor-pointer active:scale-95' 
+                  : 'bg-white/10 text-gray-400 cursor-default border border-white/5'}
+              `}
             >
-              <button 
-                onClick={() => setIsCartOpen(true)}
-                className="bg-gradient-to-r from-[#d88808] to-[#b21817] text-white w-full max-w-sm rounded-full p-4 shadow-[0_10px_30px_rgba(178,24,23,0.4)] flex items-center justify-between active:scale-95 transition-transform pointer-events-auto"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="bg-white/20 p-2 rounded-full"><FaShoppingBasket /></div>
-                  <div className="text-right">
-                    <p className="font-bold text-sm">إتمام الطلب</p>
-                    <p className="text-xs opacity-90">{cart.reduce((a, b) => a + b.quantity, 0)} منتجات</p>
-                  </div>
-                </div>
-                <p className="font-extrabold text-lg">{grandTotal} <span className="text-xs font-normal">SAR</span></p>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <div className="flex flex-col items-end leading-none gap-1">
+                <span className="text-[10px] opacity-80 font-normal">السلة</span>
+                <span className="font-extrabold">{subTotal} <span className="text-[9px]">SAR</span></span>
+              </div>
+              <div className={`p-2 rounded-full ${cart.length > 0 ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500'}`}>
+                <FaShoppingBasket size={16} />
+              </div>
+            </button>
+
+          </div>
+        </div>
 
         {/* --- نافذة السلة (z-50) --- */}
         {isCartOpen && (
@@ -339,21 +346,6 @@ export default function Home() {
           )}
         </AnimatePresence>
 
-        {/* الفوتر العائم */}
-        {cart.length === 0 && (
-          <div className="fixed bottom-6 w-full px-6 z-40 pointer-events-none flex justify-center">
-            <div className="bg-[#1a0505]/95 backdrop-blur-xl border border-[#d88808]/20 rounded-full p-2 pr-6 pl-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center justify-between gap-4 pointer-events-auto max-w-sm w-full">
-              <div className="flex gap-4 items-center">
-                <a href="instagram://user?username=mujmmar_" target="_blank" className="text-[#E1306C] hover:scale-125"><FaInstagram size={20} /></a>
-                <a href="https://www.tiktok.com/@mujmmar" target="_blank" className="text-white hover:scale-125"><FaTiktok size={18} /></a>
-                <a href="snapchat://add/mujmmar" target="_blank" className="text-[#FFFC00] hover:scale-125"><FaSnapchat size={20} /></a>
-                <a href={socialLinks.whatsapp} target="_blank" className="text-[#25D366] hover:scale-125"><FaWhatsapp size={20} /></a>
-                <a href={socialLinks.location} target="_blank" className="text-[#EA4335] hover:scale-125"><FaMapMarkerAlt size={20} /></a>
-              </div>
-              <a href={socialLinks.whatsapp} className="bg-gradient-to-r from-[#d88808] to-[#b21817] text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg hover:shadow-[#d88808]/40 transition-all active:scale-95 whitespace-nowrap"> <span>تواصل معنا</span> </a>
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );
@@ -364,7 +356,6 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
   const [quantity, setQuantity] = useState(cartItem ? cartItem.quantity : 1);
   const [selectedOpts, setSelectedOpts] = useState(cartItem ? cartItem.selectedOptions : []);
 
-  // 👇 الخيارات تظهر فقط للساندويتشات حصراً
   const isSandwich = item.categoryId === 'sandwiches';
   const isBrioche = item.name.includes('بريوش');
 

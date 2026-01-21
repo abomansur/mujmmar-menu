@@ -286,7 +286,7 @@ export default function Home() {
   );
 }
 
-// 🔥🔥 مكون المنتج المطور 🔥🔥
+// 🔥🔥 مكون المنتج المطور (Logic Corrected) 🔥🔥
 function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
   const [quantity, setQuantity] = useState(cartItem ? cartItem.quantity : 1);
   const [selectedOpts, setSelectedOpts] = useState(cartItem ? cartItem.selectedOptions : []);
@@ -294,7 +294,7 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
   // ✅ حالة "هل اختار صراحةً كل شيء؟"
   // إذا كان تعديل وكانت القائمة فارغة، نفترض أنه اختار كل شيء مسبقاً (True)
   const [isExplicitlyEverything, setIsExplicitlyEverything] = useState(
-      cartItem ? selectedOpts.length === 0 : false
+      cartItem ? (cartItem.selectedOptions.some(o => o.includes('كل شيء'))) || cartItem.selectedOptions.length === 0 : false
   );
 
   // --- 1. منطق العروض الخاصة ---
@@ -356,7 +356,8 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
       }
       if (isSandwich) {
           // للساندويتش: إما قائمة الحذف فيها عناصر، أو تم الضغط على زر "كل شيء"
-          return selectedOpts.length > 0 || isExplicitlyEverything;
+          const hasRemovals = selectedOpts.some(opt => opt.startsWith('بدون'));
+          return hasRemovals || isExplicitlyEverything;
       }
       return true; 
   };
@@ -385,9 +386,11 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
     }
     setSelectedOpts(newOpts);
     
-    // 🔥 الذكاء هنا: إذا ضغط الزبون أي زر تعديل، نلغي "كل شيء" فوراً
-    // هذا يعني إذا فرغت القائمة لاحقاً، الزر سيقفل لأنه لم يضغط "كل شيء"
-    setIsExplicitlyEverything(false);
+    // 🔥 الذكاء هنا: إذا ضغط الزبون أي زر حذف، نلغي "كل شيء"
+    if (label.startsWith('بدون')) {
+        setIsExplicitlyEverything(false);
+    }
+    // ملاحظة: الضغط على "مع..." (الإضافات) لا يؤثر على تفعيل الزر إذا لم يكن هناك "كل شيء" أو "بدون"
   };
 
   const handleEverythingClick = () => {
@@ -402,10 +405,19 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
     let finalOptions = []; 
 
     if (isSandwich) {
+        // 🔥 فصل الإضافات عن الحذوفات للترتيب
+        const extras = selectedOpts.filter(o => o.startsWith('مع'));
+        const removals = selectedOpts.filter(o => o.startsWith('بدون'));
+
         if (isExplicitlyEverything) {
-             finalOptions.push("كل شيء");
+             if (extras.length > 0) {
+                 finalOptions.push(`كل شيء مع ${extras.map(e => e.replace('مع ', '')).join(' و ')}`);
+             } else {
+                 finalOptions.push("كل شيء");
+             }
         } else {
-             finalOptions = [...selectedOpts];
+             // في حالة التعديل (ليس كل شيء): الإضافات أولاً ثم الحذف
+             finalOptions = [...extras, ...removals];
         }
     }
 
@@ -504,7 +516,8 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
 
                   <div className="mt-4 pt-4 border-t border-white/10">
                       {offerState.arabicBox.mode === 'mix' && (
-                          <p className="text-center text-gray-300 text-sm">✨ سيتم تحضير البوكس مشكل من جميع الأنواع (كباب لحم, كباب دجاج, شيش طاووق).</p>
+                          <p className="text-center text-gray-300 text-sm">✨ سيتم تحضير البوكس مشكل من جميع الأنواع 
+                          (كباب لحم, كباب دجاج, شيش طاووق).</p>
                       )}
 
                       {offerState.arabicBox.mode === 'single' && (

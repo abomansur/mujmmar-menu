@@ -29,15 +29,60 @@ export default function Home() {
   const finalDeliveryFee = (orderType === 'delivery' && !isFreeDelivery) ? deliveryFee : 0;
   const grandTotal = subTotal + finalDeliveryFee;
 
+  // ✅ ترتيب الأولويات (ثابت يستخدم في السلة وفي الواتس أب)
+  const categoryPriority = {
+      'offers': 1,
+      'sandwiches': 2,
+      'meals': 3,
+      'plates': 4,
+      'appetizers': 5,
+      'sides': 6,
+      'sauces': 7,
+      'drinks': 8
+  };
+
+  // ✅ متغير السلة المرتبة (للعرض في الموقع)
+  const sortedCartItems = useMemo(() => {
+      return [...cart].sort((a, b) => {
+          const priorityA = categoryPriority[a.categoryId] || 99;
+          const priorityB = categoryPriority[b.categoryId] || 99;
+          return priorityA - priorityB;
+      });
+  }, [cart]);
+
+  // دالة مقارنة للدمج الذكي
+  const isSameItem = (item1, item2) => {
+      if (item1.id !== item2.id) return false;
+      const opts1 = JSON.stringify(item1.selectedOptions ? item1.selectedOptions.sort() : []);
+      const opts2 = JSON.stringify(item2.selectedOptions ? item2.selectedOptions.sort() : []);
+      if (opts1 !== opts2) return false;
+      const offer1 = JSON.stringify(item1.offerState || {});
+      const offer2 = JSON.stringify(item2.offerState || {});
+      if (offer1 !== offer2) return false;
+      return true;
+  };
+
   const addToCart = (item, quantity, options, extraData = {}) => {
-    const newItem = {
+    const newItemCandidate = {
       ...item,
-      cartId: Date.now(),
       quantity,
       selectedOptions: options || [],
       ...extraData 
     };
-    setCart([...cart, newItem]);
+
+    const existingItemIndex = cart.findIndex(cartItem => isSameItem(cartItem, newItemCandidate));
+
+    if (existingItemIndex !== -1) {
+        const updatedCart = [...cart];
+        updatedCart[existingItemIndex].quantity += quantity;
+        setCart(updatedCart);
+    } else {
+        const newItem = {
+            ...newItemCandidate,
+            cartId: Date.now(),
+        };
+        setCart([...cart, newItem]);
+    }
     setSelectedItem(null); 
   };
 
@@ -72,7 +117,8 @@ export default function Home() {
     message += `نوع الطلب: ${orderType === 'delivery' ? 'توصيل 🛵' : 'استلام 🏪'}\n`;
     message += `${line}\n`;
     
-    cart.forEach((item) => {
+    // ✅ نستخدم السلة المرتبة أيضاً في الواتس أب
+    sortedCartItems.forEach((item) => {
       message += `\u200F*${item.quantity}* x ${item.name}\n`;
       if (item.selectedOptions && item.selectedOptions.length > 0) {
         item.selectedOptions.forEach(opt => {
@@ -204,7 +250,8 @@ export default function Home() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {cart.map((item) => {
+                {/* ✅ هنا نستخدم sortedCartItems بدلاً من cart العادية */}
+                {sortedCartItems.map((item) => {
                   return (
                     <div key={item.cartId} className="flex gap-3 bg-[#252525] p-3 rounded-xl border border-white/5 items-center relative group">
                       <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-white/10"><Image src={item.image} alt={item.name} fill className="object-cover" /></div>
@@ -292,7 +339,6 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
   const [selectedOpts, setSelectedOpts] = useState(cartItem ? cartItem.selectedOptions : []);
   
   // ✅ حالة "هل اختار صراحةً كل شيء؟"
-  // إذا كان تعديل وكانت القائمة فارغة، نفترض أنه اختار كل شيء مسبقاً (True)
   const [isExplicitlyEverything, setIsExplicitlyEverything] = useState(
       cartItem ? (cartItem.selectedOptions.some(o => o.includes('كل شيء'))) || cartItem.selectedOptions.length === 0 : false
   );
@@ -390,7 +436,6 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
     if (label.startsWith('بدون')) {
         setIsExplicitlyEverything(false);
     }
-    // ملاحظة: الضغط على "مع..." (الإضافات) لا يؤثر على تفعيل الزر إذا لم يكن هناك "كل شيء" أو "بدون"
   };
 
   const handleEverythingClick = () => {
@@ -516,8 +561,7 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
 
                   <div className="mt-4 pt-4 border-t border-white/10">
                       {offerState.arabicBox.mode === 'mix' && (
-                          <p className="text-center text-gray-300 text-sm">✨ سيتم تحضير البوكس مشكل من جميع الأنواع 
-                          (كباب لحم, كباب دجاج, شيش طاووق).</p>
+                          <p className="text-center text-gray-300 text-sm">✨ سيتم تحضير البوكس مشكل من جميع الأنواع (كباب لحم، كباب دجاج، شيش طاووق).</p>
                       )}
 
                       {offerState.arabicBox.mode === 'single' && (

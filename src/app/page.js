@@ -286,18 +286,23 @@ export default function Home() {
   );
 }
 
-// 🔥🔥 مكون المنتج المطور (Fix: Edit clears old options for offers) 🔥🔥
+// 🔥🔥 مكون المنتج المطور 🔥🔥
 function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
   const [quantity, setQuantity] = useState(cartItem ? cartItem.quantity : 1);
   const [selectedOpts, setSelectedOpts] = useState(cartItem ? cartItem.selectedOptions : []);
   
+  // ✅ حالة "هل اختار صراحةً كل شيء؟"
+  // إذا كان تعديل وكانت القائمة فارغة، نفترض أنه اختار كل شيء مسبقاً (True)
+  const [isExplicitlyEverything, setIsExplicitlyEverything] = useState(
+      cartItem ? selectedOpts.length === 0 : false
+  );
+
   // --- 1. منطق العروض الخاصة ---
   const isFourPlatesOffer = item.name.includes('4 صحون') || item.name.includes('عرض 4');
   const isArabicBoxOffer = item.name.includes('البوكس العربي');
 
   const plateOptions = ['كباب لحم', 'كباب دجاج', 'شيش طاووق'];
 
-  // ✅ استرجاع الحالة السابقة إذا كنا في وضع التعديل
   const [offerState, setOfferState] = useState(cartItem?.offerState || {
       fourPlates: {}, 
       arabicBox: { mode: 'mix', selection: [] }
@@ -337,7 +342,8 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
       }));
   };
 
-  const isOfferValid = () => {
+  // ✅ التحقق من صحة الاختيارات
+  const isFormValid = () => {
       if (isFourPlatesOffer) {
           const fp = offerState.fourPlates;
           return fp.plate1 && fp.plate2 && fp.plate3 && fp.plate4;
@@ -348,10 +354,14 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
           if (ab.mode === 'single') return ab.selection.length === 1;
           if (ab.mode === 'double') return ab.selection.length === 2;
       }
+      if (isSandwich) {
+          // للساندويتش: إما قائمة الحذف فيها عناصر، أو تم الضغط على زر "كل شيء"
+          return selectedOpts.length > 0 || isExplicitlyEverything;
+      }
       return true; 
   };
 
-  // --- 2. منطق الساندويتشات العادي ---
+  // --- 2. منطق الساندويتشات ---
   const isSandwich = item.categoryId === 'sandwiches';
   const isBrioche = item.name.includes('بريوش');
 
@@ -359,26 +369,46 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
     { id: 'no_garlic', label: 'بدون ثومية' }, { id: 'no_hummus', label: 'بدون حمص' }, { id: 'no_mujmmar', label: 'بدون صوص مجمّر' },
     { id: 'no_tahina', label: 'بدون طحينة' }, { id: 'no_pickles', label: 'بدون مخلل' }, { id: 'no_fries', label: 'بدون بطاطس' },
     { id: 'no_lettuce', label: 'بدون خس' }, { id: 'no_mint', label: 'بدون نعناع' },
+    { id: 'no_ketchup', label: 'بدون كاتشب' }, { id: 'no_shatta', label: 'بدون شطة' },
   ];
   if (isBrioche) defaultIngredients.push({ id: 'no_honey', label: 'بدون صوص عسل' });
 
-  const extraOptions = [{ id: 'add_ketchup', label: 'مع كاتشب' }, { id: 'add_shatta', label: 'مع شطة' }];
+  const extraOptions = []; 
   if (!isBrioche) extraOptions.push({ id: 'add_honey', label: 'مع صوص عسل' });
 
-  const isEverythingSelected = !selectedOpts.some(opt => opt.startsWith('بدون'));
-  const toggleOption = (label) => selectedOpts.includes(label) ? setSelectedOpts(selectedOpts.filter(o => o !== label)) : setSelectedOpts([...selectedOpts, label]);
-  const handleEverythingClick = () => setSelectedOpts(selectedOpts.filter(opt => !opt.startsWith('بدون')));
+  const toggleOption = (label) => {
+    let newOpts;
+    if (selectedOpts.includes(label)) {
+      newOpts = selectedOpts.filter(o => o !== label);
+    } else {
+      newOpts = [...selectedOpts, label];
+    }
+    setSelectedOpts(newOpts);
+    
+    // 🔥 الذكاء هنا: إذا ضغط الزبون أي زر تعديل، نلغي "كل شيء" فوراً
+    // هذا يعني إذا فرغت القائمة لاحقاً، الزر سيقفل لأنه لم يضغط "كل شيء"
+    setIsExplicitlyEverything(false);
+  };
+
+  const handleEverythingClick = () => {
+    // إزالة كل خيارات "بدون"
+    setSelectedOpts(selectedOpts.filter(opt => !opt.startsWith('بدون')));
+    // تفعيل حالة "كل شيء"
+    setIsExplicitlyEverything(true); 
+  };
 
   // --- 3. زر الإضافة ---
   const handleSubmit = () => {
-    let finalOptions = []; // ✅ نبدأ بمصفوفة فارغة لتجنب التكرار في العروض
+    let finalOptions = []; 
 
-    // إذا كان ساندويتش عادي، ننسخ الخيارات القديمة (بدون/مع)
     if (isSandwich) {
-        finalOptions = [...selectedOpts];
+        if (isExplicitlyEverything) {
+             finalOptions.push("كل شيء");
+        } else {
+             finalOptions = [...selectedOpts];
+        }
     }
 
-    // ✅ بناء خيارات العروض من الصفر بناءً على الاختيار الحالي فقط
     if (isFourPlatesOffer) {
         const fp = offerState.fourPlates;
         const counts = {};
@@ -395,13 +425,12 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
         if (ab.mode === 'mix') {
             finalOptions.push(`مشكل (ميكس)`);
         } else if (ab.mode === 'single') {
-            finalOptions.push(`${ab.selection[0]} فقط`); // ✅ إضافة "فقط"
+            finalOptions.push(`${ab.selection[0]} فقط`); 
         } else if (ab.mode === 'double') {
             finalOptions.push(`دمج: ${ab.selection[0]} + ${ab.selection[1]}`);
         }
     }
 
-    // ✅ الحفظ والتحديث
     if (cartItem) {
         onUpdate(cartItem.cartId, quantity, finalOptions, { offerState });
     } else {
@@ -475,7 +504,7 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
 
                   <div className="mt-4 pt-4 border-t border-white/10">
                       {offerState.arabicBox.mode === 'mix' && (
-                          <p className="text-center text-gray-300 text-sm">✨ سيتم تحضير البوكس مشكل من جميع الأنواع (كباب لحم، كباب دجاج، شيش طاووق).</p>
+                          <p className="text-center text-gray-300 text-sm">✨ سيتم تحضير البوكس مشكل من جميع الأنواع (كباب لحم, كباب دجاج, شيش طاووق).</p>
                       )}
 
                       {offerState.arabicBox.mode === 'single' && (
@@ -523,14 +552,19 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
 
           {isSandwich && (
              <div className="mb-6 space-y-4">
-               <div><h3 className="text-[#d88808] font-bold text-sm mb-2">تعديل المكونات:</h3>
-                 <div className="grid grid-cols-2 gap-2"><button onClick={handleEverythingClick} className={`text-xs py-3 px-2 rounded-xl font-bold transition-all text-center border col-span-2 ${isEverythingSelected ? 'bg-[#d88808] text-white border-[#d88808] shadow-md' : 'bg-[#2a2a2a] border-transparent text-gray-300 hover:bg-[#3a3a3a]'}`}> كل شيء </button>
+               <div><h3 className="text-[#d88808] font-bold text-sm mb-2 flex items-center gap-2"><FaCheckCircle /> تعديل المكونات :</h3>
+                 <div className="grid grid-cols-2 gap-2">
+                   {/* 🔥 زر كل شيء يتفعل فقط إذا كان هو المختار صراحة (isExplicitlyEverything) */}
+                   <button onClick={handleEverythingClick} className={`text-xs py-3 px-2 rounded-xl font-bold transition-all text-center border col-span-2 ${isExplicitlyEverything ? 'bg-[#d88808] text-white border-[#d88808] shadow-md' : 'bg-[#2a2a2a] border-transparent text-gray-300 hover:bg-[#3a3a3a]'}`}> كل شيء </button>
                    {defaultIngredients.map((opt) => (<button key={opt.id} onClick={() => toggleOption(opt.label)} className={`text-xs py-3 px-2 rounded-xl font-bold transition-all text-center border ${selectedOpts.includes(opt.label) ? 'bg-red-900 border-red-500 text-white shadow-inner' : 'bg-[#2a2a2a] border-transparent text-gray-300 hover:bg-[#3a3a3a]'}`}> {opt.label} </button>))}
                  </div>
                </div>
-               <div><h3 className="text-[#d88808] font-bold text-sm mb-2">الإضافات:</h3>
-                 <div className="grid grid-cols-2 gap-2">{extraOptions.map((opt) => (<button key={opt.id} onClick={() => toggleOption(opt.label)} className={`text-xs py-3 px-2 rounded-xl font-bold transition-all text-center border ${selectedOpts.includes(opt.label) ? 'bg-green-900 border-green-500 text-white' : 'bg-[#2a2a2a] border-transparent text-gray-300 hover:bg-[#3a3a3a]'}`}> {opt.label} </button>))}</div>
-               </div>
+               
+               {extraOptions.length > 0 && (
+                   <div><h3 className="text-[#d88808] font-bold text-sm mb-2">الإضافات:</h3>
+                     <div className="grid grid-cols-2 gap-2">{extraOptions.map((opt) => (<button key={opt.id} onClick={() => toggleOption(opt.label)} className={`text-xs py-3 px-2 rounded-xl font-bold transition-all text-center border ${selectedOpts.includes(opt.label) ? 'bg-green-900 border-green-500 text-white' : 'bg-[#2a2a2a] border-transparent text-gray-300 hover:bg-[#3a3a3a]'}`}> {opt.label} </button>))}</div>
+                   </div>
+               )}
              </div>
           )}
           <div className="flex items-center justify-between bg-[#252525] p-3 rounded-xl mb-6 border border-white/5">
@@ -542,13 +576,13 @@ function ProductModal({ item, cartItem, onClose, onAdd, onUpdate }) {
             </div>
           </div>
           <button 
-            onClick={isOfferValid() ? handleSubmit : null} 
+            onClick={isFormValid() ? handleSubmit : null} 
             className={`w-full font-bold py-4 rounded-xl shadow-lg transition-transform flex justify-between px-6 
-                ${isOfferValid() 
+                ${isFormValid() 
                     ? 'bg-gradient-to-r from-[#d88808] to-[#b21817] text-white hover:shadow-[#d88808]/40 active:scale-95' 
                     : 'bg-gray-700 text-gray-400 cursor-not-allowed grayscale'}`}
           >
-            <span>{cartItem ? 'حفظ التعديلات' : (isOfferValid() ? 'إضافة للسلة' : 'يرجى إكمال الخيارات')}</span>
+            <span>{cartItem ? 'حفظ التعديلات' : (isFormValid() ? 'إضافة للسلة' : 'يرجى تأكيد الخيارات')}</span>
             <span>{item.price * quantity} SAR</span>
           </button>
         </div>

@@ -386,7 +386,7 @@ export const menuItems = [
   {
     id: 46, // 👈 الصنف الجديد
     categoryId: 'sauces',
-    name: "مخلل",
+    name: "علبة مخلل",
     description: "مخلل خيار مقرمش.",
     price: "3",
     image: "/images/Pickles.jpg"
@@ -433,4 +433,5 @@ export const menuItems = [
     price: "2",
     image: "/images/water.jpg"
   }
+
 ];

@@ -198,22 +198,7 @@ export const menuItems = [
     price: "30",
     image: "/images/Classic_beej_kebab_plate.jpg"
   },
-  {
-    id: 21,
-    categoryId: 'plates',
-    name: "صحن كباب لحم عنتاب",
-    description: "كباب لحم على الطريقة العنتابية الحارة.",
-    price: "30",
-    image: "/images/Antep_Beef_Kebab_Plate.jpg"
-  },
-  {
-    id: 22,
-    categoryId: 'plates',
-    name: "صحن كباب لحم حلبي",
-    description: "كباب لحم على الطريقة الحلبية بنكهة شامية مميزة.",
-    price: "30",
-    image: "/images/Aleppo_Beef_Kebab_Plate.jpg"
-  },
+  // تم حذف عنتابي (21) وحلبي (22)
   {
     id: 23,
     categoryId: 'plates',
@@ -288,7 +273,6 @@ export const menuItems = [
     price: "8",
     image: "/images/Baba_Ghanouj.jpg"
   },
-  // 👇 الصنف الجديد المطلوب
   {
     id: 33,
     categoryId: 'appetizers',
@@ -365,7 +349,7 @@ export const menuItems = [
     name: "صوص حار",
     description: "صوص حار لمحبي النكهات القوية.",
     price: "3",
-    image: "/images/Mujmmar_Sauce.jpg" // 👈 نفس صورة صوص مجمر
+    image: "/images/Mujmmar_Sauce.jpg"
   },
   {
     id: 44,
@@ -384,7 +368,7 @@ export const menuItems = [
     image: "/images/Tahina_Sauce.jpg"
   },
   {
-    id: 46, // 👈 الصنف الجديد
+    id: 46,
     categoryId: 'sauces',
     name: "علبة مخلل",
     description: "مخلل خيار مقرمش.",
@@ -433,5 +417,4 @@ export const menuItems = [
     price: "2",
     image: "/images/water.jpg"
   }
-
 ];
